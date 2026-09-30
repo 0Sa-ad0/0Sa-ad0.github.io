@@ -5,24 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>T.I. Saad — Frontend Developer</title>
   <meta name="description" content="Frontend Developer based in Dhaka, Bangladesh. Building production React applications and AI-powered web systems.">
+  <meta name="theme-color" content="#050508">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23050508'/%3E%3Cstop offset='.6' stop-color='%23050508'/%3E%3Cstop offset='.76' stop-color='%2300d4ff'/%3E%3Cstop offset='1' stop-color='%237c3aed' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='32' fill='url(%23g)'/%3E%3C/svg%3E">
+  <script>document.documentElement.classList.add('js');</script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --cyan: #00d4ff; --purple: #7c3aed;
       --bg: #050508; --border: rgba(255,255,255,0.08);
-      --text: #f0f0f0; --muted: #666;
+      --text: #f0f0f0; --muted: #8b93a3;
+      --ease: cubic-bezier(.2,.7,.2,1);
     }
     html { scroll-behavior: smooth; }
     body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; overflow-x: hidden; }
+    ::selection { background: rgba(0,212,255,0.25); color: #fff; }
 
+    /* BACKGROUND LAYERS */
+    .bg-glow {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(60vmax 38vmax at 50% 34%, rgba(124,58,237,0.14), transparent 62%),
+        radial-gradient(42vmax 26vmax at 50% 44%, rgba(0,212,255,0.08), transparent 60%);
+    }
     #bg {
       position: fixed; top: 0; left: 0;
       width: 100%; height: 100%;
       z-index: 0; pointer-events: none;
       display: block;
+      opacity: 0; transition: opacity 1.8s ease;
     }
+    #bg.ready { opacity: 1; }
+    .cursor-aura {
+      position: fixed; left: 0; top: 0; z-index: 0; pointer-events: none;
+      width: 460px; height: 460px; margin: -230px 0 0 -230px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,212,255,0.10) 0%, rgba(124,58,237,0.06) 38%, transparent 68%);
+      mix-blend-mode: screen; opacity: 0; transition: opacity 0.5s ease; will-change: transform;
+    }
+    .cursor-aura.on { opacity: 1; }
 
     main { position: relative; z-index: 1; }
 
@@ -31,11 +62,25 @@
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       padding: 1.4rem 3rem;
       display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid transparent;
+      transition: background 0.35s ease, border-color 0.35s ease, padding 0.35s ease;
     }
-    .nav-logo { font-weight: 700; font-size: 0.9rem; letter-spacing: 0.14em; color: var(--cyan); text-decoration: none; }
+    nav.scrolled {
+      background: rgba(5,5,8,0.55);
+      -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+      border-bottom-color: var(--border);
+      padding-top: 1rem; padding-bottom: 1rem;
+    }
+    .nav-logo { font-weight: 700; font-size: 0.9rem; letter-spacing: 0.14em; color: var(--cyan); text-decoration: none; text-shadow: 0 0 18px rgba(0,212,255,0.45); }
     .nav-links { display: flex; gap: 2rem; list-style: none; }
-    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.05em; transition: color 0.2s; }
+    .nav-links a { position: relative; color: var(--muted); text-decoration: none; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.05em; transition: color 0.2s; }
+    .nav-links a::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      transform: scaleX(0); transition: transform 0.3s var(--ease);
+    }
     .nav-links a:hover { color: var(--text); }
+    .nav-links a:hover::after { transform: scaleX(1); }
 
     /* HERO */
     #hero {
@@ -47,13 +92,16 @@
     .chip {
       display: inline-flex; align-items: center; gap: 0.45rem;
       padding: 0.3rem 0.9rem;
-      border: 1px solid rgba(0,212,255,0.2); border-radius: 100px;
+      border: 1px solid rgba(0,212,255,0.22); border-radius: 100px;
       font-size: 0.7rem; font-weight: 600; letter-spacing: 0.14em;
       color: var(--cyan); margin-bottom: 2.5rem; text-transform: uppercase;
-      background: rgba(0,212,255,0.03);
+      background: rgba(5,5,8,0.6);
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+      box-shadow: 0 0 24px rgba(0,212,255,0.08);
     }
     .dot {
       width: 5px; height: 5px; border-radius: 50%; background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
       animation: blink 2s ease-in-out infinite;
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
@@ -63,15 +111,21 @@
       letter-spacing: -0.035em; line-height: 0.92; margin-bottom: 1rem;
       background: linear-gradient(170deg, #fff 20%, rgba(255,255,255,0.38));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 2px 22px rgba(0,0,0,0.55)) drop-shadow(0 0 48px rgba(0,212,255,0.16));
     }
     .hero-role {
       font-size: clamp(0.9rem, 2vw, 1.25rem); font-weight: 400;
-      color: var(--cyan); letter-spacing: 0.1em; margin-bottom: 1.6rem;
+      color: var(--cyan); letter-spacing: 0.1em; margin-bottom: clamp(2.2rem, 5vh, 3.2rem);
+      padding: 0.25rem 1rem; border-radius: 999px;
+      background: rgba(5,5,8,0.55);
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+      text-shadow: 0 0 18px rgba(0,212,255,0.35);
     }
     .hero-desc {
       font-size: clamp(1rem, 1.6vw, 1.15rem); color: var(--muted);
       max-width: 440px; line-height: 1.8; margin-bottom: 2.8rem; font-weight: 300;
     }
+    #hero .hero-desc { color: #aab2c0; text-shadow: 0 1px 10px rgba(5,5,8,0.95), 0 0 24px rgba(5,5,8,0.8); }
     .hero-links { display: flex; flex-wrap: wrap; gap: 0.65rem; justify-content: center; }
 
     .btn {
@@ -81,15 +135,19 @@
       text-decoration: none; transition: all 0.18s ease;
       cursor: pointer; border: none; letter-spacing: 0.02em;
     }
-    .btn-primary { background: var(--cyan); color: #000; font-weight: 700; }
-    .btn-primary:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,212,255,0.22); }
-    .btn-ghost { background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--border); }
-    .btn-ghost:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); transform: translateY(-2px); }
+    .btn-primary { background: var(--cyan); color: #000; font-weight: 700; box-shadow: 0 0 22px rgba(0,212,255,0.18); }
+    .btn-primary:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,212,255,0.32); }
+    .btn-ghost {
+      background: rgba(5,5,8,0.45); color: var(--text); border: 1px solid var(--border);
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    }
+    .btn-ghost:hover { border-color: rgba(0,212,255,0.35); background: rgba(255,255,255,0.07); transform: translateY(-2px); box-shadow: 0 6px 22px rgba(0,212,255,0.12); }
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 
     .scroll-hint {
       position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
       display: flex; flex-direction: column; align-items: center; gap: 0.45rem;
-      color: rgba(255,255,255,0.18); font-size: 0.65rem; letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.28); font-size: 0.65rem; letter-spacing: 0.15em;
       animation: floatY 2.5s ease-in-out infinite;
     }
     @keyframes floatY {
@@ -98,6 +156,12 @@
     }
     .scroll-line { width: 1px; height: 32px; background: linear-gradient(to bottom, transparent, var(--cyan)); }
 
+    /* Entrance + reveal motion (only when JS runs, so content never stays hidden) */
+    .js .hero-in { opacity: 0; transform: translateY(18px); animation: rise 1s var(--ease) forwards; animation-delay: var(--d, 0s); }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+    .js .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.9s var(--ease), transform 0.9s var(--ease); }
+    .js .reveal.in { opacity: 1; transform: none; }
+
     /* SECTIONS */
     section { padding: 5rem 2rem; }
     .container { max-width: 840px; margin: 0 auto; }
@@ -105,26 +169,37 @@
     .s-title { font-size: clamp(1.4rem, 2.8vw, 2rem); font-weight: 700; margin-bottom: 2rem; letter-spacing: -0.02em; }
 
     /* SKILLS */
-    #skills { background: rgba(5,5,8,0.38); backdrop-filter: blur(12px); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    #skills { background: rgba(5,5,8,0.38); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
     .tag-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .tag {
       padding: 0.35rem 0.9rem; border-radius: 5px; font-size: 0.8rem; font-weight: 500;
       background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-      color: var(--text); transition: all 0.18s; cursor: default;
+      color: var(--text); cursor: default;
+      --td: calc(var(--i, 0) * 30ms + 0.15s);
+      transition: opacity 0.6s var(--ease) var(--td), transform 0.6s var(--ease) var(--td), border-color 0.18s, color 0.18s, background 0.18s, box-shadow 0.18s;
     }
-    .tag:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,212,255,0.05); }
+    .js .reveal .tag { opacity: 0; transform: translateY(10px); }
+    .js .reveal.in .tag { opacity: 1; transform: none; }
+    .tag:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,212,255,0.05); box-shadow: 0 0 16px rgba(0,212,255,0.14); }
 
     /* PROJECT */
     .card {
       background: rgba(255,255,255,0.025); border: 1px solid var(--border);
-      border-radius: 16px; padding: 2.25rem; position: relative; overflow: hidden;
-      transition: border-color 0.3s;
+      border-radius: 16px; padding: 2.25rem; position: relative; overflow: hidden; isolation: isolate;
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
-    .card:hover { border-color: rgba(0,212,255,0.25); }
+    .card:hover { border-color: rgba(0,212,255,0.25); box-shadow: 0 0 60px rgba(0,212,255,0.06); }
     .card::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
       background: linear-gradient(90deg, var(--cyan), var(--purple), transparent);
     }
+    .card::after {
+      content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), rgba(0,212,255,0.09), rgba(124,58,237,0.05) 40%, transparent 65%);
+      opacity: 0; transition: opacity 0.35s ease;
+    }
+    .card:hover::after { opacity: 1; }
     .proj-head { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem; flex-wrap: wrap; }
     .proj-name { font-size: 1.5rem; font-weight: 700; color: #fff; }
     .badge {
@@ -139,27 +214,61 @@
       padding: 1.1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
     }
     .stat { display: flex; flex-direction: column; gap: 0.15rem; }
-    .stat-v { font-size: 1.35rem; font-weight: 700; color: var(--cyan); letter-spacing: -0.02em; }
+    .stat-v { font-size: 1.35rem; font-weight: 700; color: var(--cyan); letter-spacing: -0.02em; text-shadow: 0 0 18px rgba(0,212,255,0.3); }
     .stat-l { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.04em; }
     .ptags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.5rem; }
     .ptag { padding: 0.2rem 0.6rem; background: rgba(255,255,255,0.025); border: 1px solid var(--border); border-radius: 4px; font-size: 0.72rem; color: var(--muted); }
 
     /* CONTACT */
-    #contact { background: rgba(5,5,8,0.38); backdrop-filter: blur(12px); border-top: 1px solid var(--border); text-align: center; }
+    #contact { background: rgba(5,5,8,0.38); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-top: 1px solid var(--border); text-align: center; }
     #contact .hero-desc { margin: 0 auto 2rem; }
     .clinks { display: flex; flex-wrap: wrap; gap: 0.65rem; justify-content: center; }
 
-    footer { text-align: center; padding: 1.8rem; color: rgba(255,255,255,0.13); font-size: 0.75rem; border-top: 1px solid var(--border); }
+    footer { position: relative; z-index: 1; text-align: center; padding: 1.8rem 1.8rem 4.8rem; color: rgba(255,255,255,0.3); font-size: 0.75rem; border-top: 1px solid var(--border); background: rgba(5,5,8,0.6); }
+
+    /* AURA SWITCHER */
+    .aura-switch {
+      position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 120;
+      display: flex; align-items: center; gap: 0.2rem; padding: 0.3rem;
+      border-radius: 999px; border: 1px solid var(--border);
+      background: rgba(10,10,16,0.55);
+      -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+      opacity: 0; transform: translateY(10px); pointer-events: none;
+      transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+    }
+    .aura-switch.show { opacity: 1; transform: none; pointer-events: auto; }
+    .aura-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.22em; color: var(--muted); padding: 0 0.5rem 0 0.7rem; }
+    .aura-switch button {
+      font-family: inherit; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.03em;
+      color: var(--muted); background: transparent; border: 0; border-radius: 999px;
+      padding: 0.42rem 0.8rem; cursor: pointer;
+      transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .aura-switch button:hover { color: var(--text); }
+    .aura-switch button[aria-pressed="true"] { color: #000; background: var(--cyan); box-shadow: 0 0 18px rgba(0,212,255,0.45); }
 
     @media(max-width:640px){
-      nav{padding:1.1rem 1.4rem;} .nav-links{gap:1rem;}
+      nav{padding:1.1rem 1.4rem;} nav.scrolled{padding-top:0.8rem;padding-bottom:0.8rem;} .nav-links{gap:1rem;}
       section{padding:3.5rem 1.2rem;} .card{padding:1.5rem;}
+      .aura-switch { right: 50%; bottom: 0.9rem; transform: translate(50%, 10px); }
+      .aura-switch.show { transform: translate(50%, 0); }
+      .aura-label { display: none; }
+      .aura-switch button { padding: 0.4rem 0.62rem; font-size: 0.7rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; transition-delay: 0s !important; }
+      .js .hero-in, .js .reveal, .js .reveal .tag { opacity: 1; transform: none; }
     }
   </style>
 </head>
 <body>
 
-<canvas id="bg"></canvas>
+<div class="bg-glow" aria-hidden="true"></div>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="cursor-aura" aria-hidden="true"></div>
 
 <nav>
   <a href="#hero" class="nav-logo">TI SAAD</a>
@@ -172,11 +281,11 @@
 
 <main>
   <section id="hero">
-    <div class="chip"><span class="dot"></span>Available for work</div>
-    <h1 class="hero-name">T.I. SAAD</h1>
-    <p class="hero-role">Frontend Developer</p>
-    <p class="hero-desc">17 months building production React applications for Australian enterprise clients. I ship — not prototype.</p>
-    <div class="hero-links">
+    <div class="chip hero-in" style="--d:.15s"><span class="dot"></span>Available for work</div>
+    <h1 class="hero-name hero-in" style="--d:.3s">T.I. SAAD</h1>
+    <p class="hero-role hero-in" style="--d:.45s">Frontend Developer</p>
+    <p class="hero-desc hero-in" style="--d:.55s">17 months building production React applications for Australian enterprise clients. I ship — not prototype.</p>
+    <div class="hero-links hero-in" style="--d:.7s">
       <a href="https://spoc.ai" target="_blank" rel="noopener" class="btn btn-primary">↗ spoc.ai</a>
       <a href="https://linkedin.com/in/saadsaadsaad" target="_blank" rel="noopener" class="btn btn-ghost">LinkedIn</a>
       <a href="https://github.com/0Sa-ad0" target="_blank" rel="noopener" class="btn btn-ghost">GitHub</a>
@@ -187,7 +296,7 @@
   </section>
 
   <section id="skills">
-    <div class="container">
+    <div class="container reveal">
       <p class="s-label">Technical Skills</p>
       <h2 class="s-title">What I work with</h2>
       <div class="tag-grid">
@@ -204,7 +313,7 @@
   </section>
 
   <section id="project">
-    <div class="container">
+    <div class="container reveal">
       <p class="s-label">Featured Work</p>
       <h2 class="s-title">What I've shipped</h2>
       <div class="card">
@@ -232,7 +341,7 @@
   </section>
 
   <section id="contact">
-    <div class="container">
+    <div class="container reveal">
       <p class="s-label">Contact</p>
       <h2 class="s-title">Let's work together</h2>
       <p class="hero-desc">Open to full-time and contract roles — remote or Dhaka-based.</p>
@@ -249,86 +358,882 @@
 
 <footer><p>T.I. Saad · Dhaka, Bangladesh · 2026</p></footer>
 
+<div class="aura-switch" role="group" aria-label="Background aura style">
+  <span class="aura-label">AURA</span>
+  <button type="button" data-mode="all" aria-pressed="true">All</button>
+  <button type="button" data-mode="orb" aria-pressed="false">Orb</button>
+  <button type="button" data-mode="particles" aria-pressed="false">Particles</button>
+  <button type="button" data-mode="aurora" aria-pressed="false">Aurora</button>
+</div>
+
 <script>
-// ── Canvas 2D Particle Network — zero dependencies ────────────────────────────
-const canvas = document.getElementById('bg');
-const ctx    = canvas.getContext('2d');
+// ── Page UI: glass nav, scroll reveals, card spotlight, cursor glow ─────────────
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function resize() {
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener('resize', resize);
+  const nav = document.querySelector('nav');
+  const onScroll = () => nav.classList.toggle('scrolled', scrollY > 24);
+  onScroll();
+  addEventListener('scroll', onScroll, { passive: true });
 
-// Particles
-const TOTAL = 130;
-const CONNECT = 130; // px distance to connect
-const particles = [];
+  const reveals = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window && !reduce) {
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      }
+    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+    reveals.forEach((el) => io.observe(el));
+  } else {
+    reveals.forEach((el) => el.classList.add('in'));
+  }
+  document.querySelectorAll('.tag').forEach((t, i) => t.style.setProperty('--i', i));
 
-for (let i = 0; i < TOTAL; i++) {
-  particles.push({
-    x:  Math.random() * canvas.width,
-    y:  Math.random() * canvas.height,
-    vx: (Math.random() - 0.5) * 0.38,
-    vy: (Math.random() - 0.5) * 0.38,
-    r:  Math.random() * 1.4 + 0.6,
+  document.querySelectorAll('.card').forEach((card) => {
+    card.addEventListener('pointermove', (e) => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
   });
-}
 
-let mx = -9999, my = -9999;
-window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-
-function draw() {
-  // Background
-  ctx.fillStyle = '#050508';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Move particles
-  for (const p of particles) {
-    p.x += p.vx;
-    p.y += p.vy;
-    if (p.x < 0 || p.x > canvas.width)  p.vx *= -1;
-    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-    // Subtle mouse repulsion
-    const ddx = p.x - mx, ddy = p.y - my;
-    const dd  = Math.sqrt(ddx*ddx + ddy*ddy);
-    if (dd < 80) {
-      p.x += ddx / dd * 0.5;
-      p.y += ddy / dd * 0.5;
-    }
+  const glow = document.querySelector('.cursor-aura');
+  if (glow && !reduce && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    let x = innerWidth / 2, y = innerHeight / 2, tx = x, ty = y, raf = 0;
+    const tick = () => {
+      x += (tx - x) * 0.14; y += (ty - y) * 0.14;
+      glow.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.2 ? requestAnimationFrame(tick) : 0;
+    };
+    addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      tx = e.clientX; ty = e.clientY;
+      glow.classList.add('on');
+      if (!raf) raf = requestAnimationFrame(tick);
+    }, { passive: true });
+    addEventListener('mouseout', (e) => { if (!e.relatedTarget) glow.classList.remove('on'); });
   }
 
-  // Draw connections
-  for (let i = 0; i < TOTAL; i++) {
-    for (let j = i + 1; j < TOTAL; j++) {
-      const dx   = particles[i].x - particles[j].x;
-      const dy   = particles[i].y - particles[j].y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < CONNECT) {
+  // ── Zero-dependency 2D fallback (the previous particle network) ───────────────
+  // Used automatically when WebGL or Three.js is unavailable.
+  window.startFallback2D = () => {
+    if (window.__auraFallback) return;
+    window.__auraFallback = true;
+    const old = document.getElementById('bg');
+    const canvas = document.createElement('canvas');
+    canvas.id = 'bg';
+    canvas.setAttribute('aria-hidden', 'true');
+    if (old) old.replaceWith(canvas); else document.body.prepend(canvas);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const TOTAL = innerWidth < 700 ? 70 : 130;
+    const CONNECT = 130;
+    let started = false;
+    const resize = () => {
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
+      if (reduce && started) draw();
+    };
+    const ps = Array.from({ length: TOTAL }, () => ({
+      x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+      vx: (Math.random() - 0.5) * 0.38, vy: (Math.random() - 0.5) * 0.38,
+      r: Math.random() * 1.4 + 0.6,
+    }));
+    let mx = -9999, my = -9999;
+    addEventListener('pointermove', (e) => { mx = e.clientX; my = e.clientY; }, { passive: true });
+
+    function draw() {
+      ctx.fillStyle = '#050508';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      for (const p of ps) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        const dx = p.x - mx, dy = p.y - my, dd = Math.sqrt(dx * dx + dy * dy);
+        if (dd < 80 && dd > 0) { p.x += dx / dd * 0.5; p.y += dy / dd * 0.5; }
+      }
+      for (let i = 0; i < TOTAL; i++) {
+        for (let j = i + 1; j < TOTAL; j++) {
+          const dx = ps[i].x - ps[j].x, dy = ps[i].y - ps[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < CONNECT) {
+            ctx.beginPath();
+            ctx.moveTo(ps[i].x, ps[i].y);
+            ctx.lineTo(ps[j].x, ps[j].y);
+            ctx.strokeStyle = `rgba(0,212,255,${0.18 * (1 - dist / CONNECT)})`;
+            ctx.lineWidth = 0.7;
+            ctx.stroke();
+          }
+        }
+      }
+      for (const p of ps) {
         ctx.beginPath();
-        ctx.moveTo(particles[i].x, particles[i].y);
-        ctx.lineTo(particles[j].x, particles[j].y);
-        ctx.strokeStyle = `rgba(0,212,255,${0.18 * (1 - dist / CONNECT)})`;
-        ctx.lineWidth   = 0.7;
-        ctx.stroke();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,212,255,0.85)';
+        ctx.fill();
+      }
+      if (!reduce) requestAnimationFrame(draw);
+    }
+
+    resize();
+    addEventListener('resize', resize);
+    draw();
+    started = true;
+    requestAnimationFrame(() => canvas.classList.add('ready'));
+  };
+})();
+</script>
+
+<script type="module">
+// ── Three.js aura: energy orb + particle field + aurora sky, with bloom ─────────
+const canvas = document.getElementById('bg');
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lowPower = matchMedia('(pointer: coarse), (max-width: 760px)').matches;
+
+let THREE = null;
+let Post = null;
+try {
+  THREE = await import('three');
+} catch (err) {
+  console.warn('[aura] Three.js could not load, using the 2D background.', err);
+}
+if (THREE) {
+  try {
+    const [c, r, b, o] = await Promise.all([
+      import('three/addons/postprocessing/EffectComposer.js'),
+      import('three/addons/postprocessing/RenderPass.js'),
+      import('three/addons/postprocessing/UnrealBloomPass.js'),
+      import('three/addons/postprocessing/OutputPass.js'),
+    ]);
+    Post = { EffectComposer: c.EffectComposer, RenderPass: r.RenderPass, UnrealBloomPass: b.UnrealBloomPass, OutputPass: o.OutputPass };
+  } catch (err) {
+    console.warn('[aura] Bloom unavailable, continuing without it.', err);
+  }
+  startAura();
+} else {
+  window.startFallback2D();
+}
+
+function startAura() {
+  // ---------- shaders ----------
+  // 3D simplex noise — Ian McEwan, Ashima Arts (MIT)
+  const NOISE = /* glsl */`
+    vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
+    vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+    float snoise(vec3 v) {
+      const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+      const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+      vec3 i = floor(v + dot(v, C.yyy));
+      vec3 x0 = v - i + dot(i, C.xxx);
+      vec3 g = step(x0.yzx, x0.xyz);
+      vec3 l = 1.0 - g;
+      vec3 i1 = min(g.xyz, l.zxy);
+      vec3 i2 = max(g.xyz, l.zxy);
+      vec3 x1 = x0 - i1 + C.xxx;
+      vec3 x2 = x0 - i2 + C.yyy;
+      vec3 x3 = x0 - D.yyy;
+      i = mod289(i);
+      vec4 p = permute(permute(permute(
+                i.z + vec4(0.0, i1.z, i2.z, 1.0))
+              + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+              + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+      float n_ = 0.142857142857;
+      vec3 ns = n_ * D.wyz - D.xzx;
+      vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+      vec4 x_ = floor(j * ns.z);
+      vec4 y_ = floor(j - 7.0 * x_);
+      vec4 x = x_ * ns.x + ns.yyyy;
+      vec4 y = y_ * ns.x + ns.yyyy;
+      vec4 h = 1.0 - abs(x) - abs(y);
+      vec4 b0 = vec4(x.xy, y.xy);
+      vec4 b1 = vec4(x.zw, y.zw);
+      vec4 s0 = floor(b0) * 2.0 + 1.0;
+      vec4 s1 = floor(b1) * 2.0 + 1.0;
+      vec4 sh = -step(h, vec4(0.0));
+      vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+      vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+      vec3 p0 = vec3(a0.xy, h.x);
+      vec3 p1 = vec3(a0.zw, h.y);
+      vec3 p2 = vec3(a1.xy, h.z);
+      vec3 p3 = vec3(a1.zw, h.w);
+      vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+      p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+      vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+      m = m * m;
+      return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+    }
+  `;
+
+  const AURORA_FS = /* glsl */`
+    uniform float uTime;
+    uniform vec2 uRes;
+    uniform vec3 uC1;
+    uniform vec3 uC2;
+    uniform float uInt;
+    uniform vec2 uMouse;
+    uniform float uScroll;
+
+    float hash21(vec2 p) {
+      vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+      p3 += dot(p3, p3.yzx + 33.33);
+      return fract((p3.x + p3.y) * p3.z);
+    }
+    float vnoise(vec2 p) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      vec2 u = f * f * (3.0 - 2.0 * f);
+      float a = hash21(i);
+      float b = hash21(i + vec2(1.0, 0.0));
+      float c = hash21(i + vec2(0.0, 1.0));
+      float d = hash21(i + vec2(1.0, 1.0));
+      return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+    }
+    float fbm3(vec2 p) {
+      float v = 0.0;
+      float a = 0.5;
+      for (int i = 0; i < 3; i++) {
+        v += a * vnoise(p);
+        p = p * 2.02 + vec2(11.7, 5.3);
+        a *= 0.5;
+      }
+      return v;
+    }
+    float fbm4(vec2 p) {
+      float v = 0.0;
+      float a = 0.5;
+      for (int i = 0; i < 4; i++) {
+        v += a * vnoise(p);
+        p = p * 2.02 + vec2(11.7, 5.3);
+        a *= 0.5;
+      }
+      return v;
+    }
+
+    // Rendered at reduced resolution into a texture (the light is soft, so it upscales cleanly)
+    void main() {
+      vec2 p = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+      vec2 q = p + uMouse * 0.035;
+      q.y += uScroll * 0.22;
+      float t = uTime;
+
+      // three curtains of light, brightest at their lower edge, rays rising upward
+      vec3 col = vec3(0.0);
+      for (int i = 0; i < 3; i++) {
+        float fi = float(i);
+        float base = 0.20 - fi * 0.17
+          + 0.09 * sin(q.x * (1.3 + fi * 0.45) + t * (0.12 + fi * 0.035) + fi * 2.3)
+          + 0.16 * (fbm3(vec2(q.x * 0.85 + fi * 7.1, t * 0.045 + fi * 3.0)) - 0.5);
+        float d = q.y - base;
+        float body = smoothstep(-0.015, 0.02, d) * exp(-max(d, 0.0) * (3.0 + fi * 1.1));
+        float edge = exp(-abs(d) * 26.0);
+        float rays = fbm4(vec2(q.x * (6.5 + fi * 2.5) + t * 0.05 + fi * 13.0, d * 1.1 - t * 0.1));
+        rays = pow(clamp(rays, 0.0, 1.0), 1.8) * 2.2;
+        float a = (body * 0.8 + edge * 0.7) * rays;
+        vec3 c = mix(uC1, uC2, clamp(d * 1.7 + fi * 0.3, 0.0, 1.0));
+        col += c * a * (0.26 - fi * 0.06);
+      }
+      gl_FragColor = vec4(col * uInt, 1.0);
+      #include <colorspace_fragment>
+    }
+  `;
+
+  // Full-resolution sky: upscaled aurora + crisp stars + ambient glow + vignette
+  const SKY_FS = /* glsl */`
+    uniform sampler2D tAurora;
+    uniform vec2 uRes;
+    uniform float uTime;
+    uniform vec3 uC2;
+    varying vec2 vUv;
+
+    float hash21(vec2 p) {
+      vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+      p3 += dot(p3, p3.yzx + 33.33);
+      return fract((p3.x + p3.y) * p3.z);
+    }
+
+    void main() {
+      vec2 p = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+      vec3 aur = texture2D(tAurora, vUv).rgb;
+
+      vec2 sp = gl_FragCoord.xy / 3.0;
+      float h = hash21(floor(sp));
+      float star = step(0.9965, h) * (1.0 - smoothstep(0.0, 0.45, length(fract(sp) - 0.5)));
+      star *= 0.35 + 0.65 * (0.5 + 0.5 * sin(uTime * (0.6 + h * 3.0) + h * 120.0));
+
+      vec3 bg = vec3(0.0015, 0.0015, 0.0024);
+      bg += uC2 * 0.012 * (1.0 - smoothstep(0.0, 1.2, length(p - vec2(0.0, 0.15))));
+      vec3 outc = bg + aur + vec3(0.55, 0.65, 0.8) * star * 0.25;
+      outc *= 1.0 - 0.45 * smoothstep(0.35, 1.25, length(p * vec2(0.8, 1.0)));
+      gl_FragColor = vec4(outc, 1.0);
+      #include <colorspace_fragment>
+    }
+  `;
+
+  const ORB_VS = /* glsl */`
+    uniform float uTime;
+    uniform float uRadius;
+    uniform float uAmp;
+    uniform float uFreq;
+    uniform vec3 uMouseDir;
+    uniform float uMouseAmt;
+    varying vec3 vN;
+    varying vec3 vView;
+    varying vec3 vDir;
+    varying float vDisp;
+
+    float field(vec3 d) {
+      float n = snoise(d * uFreq + vec3(uTime * 0.21, uTime * 0.13, -uTime * 0.17));
+      n += 0.45 * snoise(d * uFreq * 2.6 + vec3(-uTime * 0.29, uTime * 0.22, uTime * 0.12));
+      float m = pow(max(dot(d, uMouseDir), 0.0), 7.0) * uMouseAmt;
+      return n * uAmp + m;
+    }
+    vec3 displaced(vec3 d) { return d * (uRadius + field(d)); }
+
+    void main() {
+      vec3 d = normalize(position);
+      vec3 helper = abs(d.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+      vec3 t = normalize(cross(d, helper));
+      vec3 b = normalize(cross(d, t));
+      const float e = 0.01;
+      vec3 p0 = displaced(d);
+      vec3 p1 = displaced(normalize(d + t * e));
+      vec3 p2 = displaced(normalize(d + b * e));
+      vec3 n = normalize(cross(p1 - p0, p2 - p0));
+      vDisp = length(p0) - uRadius;
+      vDir = d;
+      vec4 mv = modelViewMatrix * vec4(p0, 1.0);
+      vView = -mv.xyz;
+      vN = normalize(normalMatrix * n);
+      gl_Position = projectionMatrix * mv;
+    }
+  `;
+
+  const ORB_FS = /* glsl */`
+    uniform float uTime;
+    uniform vec3 uC1;
+    uniform vec3 uC2;
+    uniform vec3 uC3;
+    uniform float uGlow;
+    varying vec3 vN;
+    varying vec3 vView;
+    varying vec3 vDir;
+    varying float vDisp;
+
+    void main() {
+      vec3 n = normalize(vN);
+      vec3 v = normalize(vView);
+      float ndv = clamp(dot(n, v), 0.0, 1.0);
+      float fres = pow(1.0 - ndv, 3.0);
+      float swirl = 0.5 + 0.5 * sin(atan(vDir.z, vDir.x) * 2.0 + vDir.y * 3.5 + uTime * 0.55 + vDisp * 9.0);
+      vec3 rim = mix(uC1, uC2, swirl);
+      vec3 hot = mix(rim, uC3, pow(fres, 3.0) * 0.55);
+      float energy = smoothstep(0.02, 0.16, vDisp);
+      float bands = pow(0.5 + 0.5 * sin(dot(vDir, vec3(0.2, 1.0, 0.35)) * 16.0 - uTime * 1.1), 14.0);
+      vec3 col = vec3(0.004, 0.005, 0.016);          // dark "eclipse" core keeps the name readable
+      col += hot * fres * 2.2 * uGlow;               // glowing rim
+      col += rim * energy * 0.45 * uGlow * (0.12 + 0.88 * fres);   // crests glow mostly near the rim
+      col += rim * bands * (0.04 + 0.45 * fres) * uGlow;
+      col += uC2 * 0.022 * (1.0 - fres);
+      gl_FragColor = vec4(col, 1.0);
+      #include <colorspace_fragment>
+    }
+  `;
+
+  const GLOW_VS = /* glsl */`
+    varying vec3 vN;
+    varying vec3 vView;
+    varying vec3 vPos;
+    void main() {
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      vN = normalize(normalMatrix * normal);
+      vView = -mv.xyz;
+      vPos = position;
+      gl_Position = projectionMatrix * mv;
+    }
+  `;
+
+  const GLOW_FS = /* glsl */`
+    uniform float uTime;
+    uniform vec3 uC1;
+    uniform vec3 uC2;
+    uniform float uGlow;
+    varying vec3 vN;
+    varying vec3 vView;
+    varying vec3 vPos;
+    void main() {
+      float d = -dot(normalize(vN), normalize(vView));   // inner (back) faces of the halo shell
+      float i = pow(clamp(d / 0.78, 0.0, 1.0), 2.8);
+      float swirl = 0.5 + 0.5 * sin(atan(vPos.y, vPos.x) * 3.0 - uTime * 0.45);
+      vec3 col = mix(uC1, uC2, swirl) * i * 0.45 * uGlow;
+      gl_FragColor = vec4(col, 1.0);
+      #include <colorspace_fragment>
+    }
+  `;
+
+  const P_VS = /* glsl */`
+    uniform float uTime;
+    uniform float uSize;
+    uniform float uPR;
+    uniform float uPresence;
+    uniform vec3 uMouse;
+    uniform float uRepel;
+    uniform float uPulse;
+    uniform float uScroll;
+    uniform vec3 uC1;
+    uniform vec3 uC2;
+    uniform vec3 uC3;
+    attribute vec3 aOrbit;   // radius, start angle, angular speed
+    attribute vec3 aShape;   // ring: tilt, roll, height   | shell: polar angle
+    attribute vec3 aLook;    // size, seed, type (0 ring, 1 shell)
+    varying vec3 vColor;
+    varying float vAlpha;
+
+    void main() {
+      float r = aOrbit.x;
+      float ang = aOrbit.y + uTime * aOrbit.z;
+      vec3 p;
+      if (aLook.z < 0.5) {
+        vec3 q = vec3(cos(ang) * r, aShape.z + 0.035 * sin(ang * 5.0 + aLook.y * 6.2831), sin(ang) * r);
+        float ct = cos(aShape.x);
+        float st = sin(aShape.x);
+        q = vec3(q.x, q.y * ct - q.z * st, q.y * st + q.z * ct);
+        float cr = cos(aShape.y);
+        float sr = sin(aShape.y);
+        p = vec3(q.x * cr - q.y * sr, q.x * sr + q.y * cr, q.z);
+      } else {
+        float phi = aShape.x;
+        p = vec3(sin(phi) * cos(ang), cos(phi), sin(phi) * sin(ang)) * r;
+      }
+      float breathe = 1.0 + 0.035 * sin(uTime * 0.9 + aLook.y * 12.0);
+      p *= mix(0.12, 1.0, uPresence) * breathe * (1.0 + 0.3 * uScroll + 0.35 * uPulse * (0.6 + 0.4 * aLook.y));
+
+      vec3 dm = p - uMouse;
+      float dl = length(dm);
+      p += dm / (dl + 1e-4) * (1.0 - smoothstep(0.0, 1.25, dl)) * uRepel;
+
+      vec4 mv = modelViewMatrix * vec4(p, 1.0);
+      gl_Position = projectionMatrix * mv;
+      float hot = step(0.978, aLook.y);
+      gl_PointSize = aLook.x * (1.0 + hot * 0.6) * uSize * uPR / max(-mv.z, 0.1);
+
+      float tw = 0.6 + 0.4 * sin(uTime * (1.2 + aLook.y * 3.5) + aLook.y * 91.0);
+      vAlpha = tw * (aLook.z < 0.5 ? 1.0 : 0.45) * uPresence;
+      vec3 c = mix(uC1, uC2, smoothstep(0.15, 0.85, fract(aLook.y * 7.13 + p.y * 0.12)));
+      vColor = mix(c, uC3, hot * 0.6);
+    }
+  `;
+
+  const P_FS = /* glsl */`
+    varying vec3 vColor;
+    varying float vAlpha;
+    void main() {
+      float d = length(gl_PointCoord - 0.5);
+      float a = 1.0 - smoothstep(0.0, 0.5, d);
+      a *= a;
+      if (a * vAlpha < 0.003) discard;
+      gl_FragColor = vec4(vColor * 1.2, a * vAlpha);
+      #include <colorspace_fragment>
+    }
+  `;
+
+  // ---------- state ----------
+  const MODES = {
+    all:       { orb: 1, particles: 1, aurora: 0.42 },
+    orb:       { orb: 1, particles: 0, aurora: 0.18 },
+    particles: { orb: 0, particles: 1, aurora: 0.18 },
+    aurora:    { orb: 0, particles: 0, aurora: 1 },
+  };
+  const target = { ...MODES.all };
+  const pres = { orb: 0, particles: 0, aurora: 0 };
+  const mouse = { x: 0, y: 0, sx: 0, sy: 0, active: false };
+  const switcher = document.querySelector('.aura-switch');
+  const buttons = [...switcher.querySelectorAll('button')];
+  let dead = false, started = false, dirty = true, raf = 0;
+  let time = reduceMotion ? 14 : 0, last = performance.now(), lastScroll = -1;
+  let pulse = 0, repel = 0, mouseAmt = 0;
+  let W = innerWidth, H = innerHeight, anchorDocY = H * 0.42, camZTarget = 7;
+  let perfLevel = 0, perfN = 0, perfSum = 0, perfFrom = performance.now() + 1800;
+
+  // ---------- renderer ----------
+  let renderer;
+  try {
+    // bloom renders offscreen, so canvas MSAA would be wasted work when it's on
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: !Post && !lowPower, powerPreference: 'high-performance' });
+  } catch (err) {
+    console.warn('[aura] WebGL unavailable, using the 2D background.', err);
+    window.startFallback2D();
+    return;
+  }
+  let shaderError = false;
+  renderer.debug.onShaderError = (gl, program, vs, fs) => {
+    shaderError = true;
+    console.error('[aura] shader error', gl.getProgramInfoLog(program), gl.getShaderInfoLog(vs), gl.getShaderInfoLog(fs));
+  };
+  // cap the drawing buffer by a pixel budget so big / high-DPI screens stay smooth
+  const PIXEL_BUDGET = lowPower ? 1.1e6 : 2.3e6;
+  let qualityScale = 1;
+  const pickPixelRatio = () => Math.max(0.5, Math.min(
+    window.devicePixelRatio || 1,
+    lowPower ? 1.5 : 1.75,
+    Math.sqrt(PIXEL_BUDGET / (innerWidth * innerHeight)),
+  ) * qualityScale);
+  let pixelRatio = pickPixelRatio();
+  renderer.setPixelRatio(pixelRatio);
+  renderer.setClearColor(0x050508, 1);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, W / H, 0.1, 100);
+  camera.position.set(0, 0, 7);
+  const tanHalf = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+
+  const U = {
+    time: { value: 0 },
+    c1: { value: new THREE.Color('#00d4ff') },
+    c2: { value: new THREE.Color('#7c3aed') },
+    c3: { value: new THREE.Color('#e6fbff') },
+  };
+
+  // Aurora: drawn at reduced resolution into its own texture, then upscaled by the sky quad
+  const quadGeo = new THREE.PlaneGeometry(2, 2);
+  const QUAD_VS = 'varying vec2 vUv; void main() { vUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 0.0, 1.0); }';
+  let auroraScale = lowPower ? 0.45 : 0.5;
+  const auroraRT = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, depthBuffer: false });
+  const auroraScene = new THREE.Scene();
+  const auroraMat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: U.time, uC1: U.c1, uC2: U.c2,
+      uRes: { value: new THREE.Vector2(1, 1) }, uInt: { value: 0 },
+      uMouse: { value: new THREE.Vector2() }, uScroll: { value: 0 },
+    },
+    vertexShader: QUAD_VS,
+    fragmentShader: AURORA_FS,
+    depthTest: false, depthWrite: false,
+  });
+  const auroraQuad = new THREE.Mesh(quadGeo, auroraMat);
+  auroraQuad.frustumCulled = false;
+  auroraScene.add(auroraQuad);
+
+  const skyMat = new THREE.ShaderMaterial({
+    uniforms: { tAurora: { value: auroraRT.texture }, uRes: { value: new THREE.Vector2(1, 1) }, uTime: U.time, uC2: U.c2 },
+    vertexShader: QUAD_VS,
+    fragmentShader: SKY_FS,
+    depthTest: false, depthWrite: false,
+  });
+  const sky = new THREE.Mesh(quadGeo, skyMat);
+  sky.frustumCulled = false;
+  sky.renderOrder = -10;
+  scene.add(sky);
+
+  // Energy orb
+  const ORB_R = 1.2;
+  const GLOW_R = ORB_R * 1.55;
+  const orbMat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: U.time, uC1: U.c1, uC2: U.c2, uC3: U.c3,
+      uRadius: { value: ORB_R }, uAmp: { value: 0.1 }, uFreq: { value: 1.35 },
+      uMouseDir: { value: new THREE.Vector3(0, 0, 1) }, uMouseAmt: { value: 0 }, uGlow: { value: 1 },
+    },
+    vertexShader: NOISE + ORB_VS,
+    fragmentShader: ORB_FS,
+  });
+  const orb = new THREE.Mesh(new THREE.IcosahedronGeometry(1, lowPower ? 28 : 56), orbMat);
+  orb.rotation.x = 0.35;
+  orb.frustumCulled = false;
+
+  const glowMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: U.time, uC1: U.c1, uC2: U.c2, uGlow: { value: 1 } },
+    vertexShader: GLOW_VS,
+    fragmentShader: GLOW_FS,
+    side: THREE.BackSide, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 48), glowMat);
+  glow.frustumCulled = false;
+
+  // Particle aura: tilted accretion ring + face-on corona + drifting dust shell
+  const N = lowPower ? 3200 : 7600;
+  const orbit = new Float32Array(N * 3);
+  const shape = new Float32Array(N * 3);
+  const look = new Float32Array(N * 3);
+  const gauss = () => {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  };
+  for (let i = 0; i < N; i++) {
+    const k = Math.random();
+    const seed = Math.random();
+    const a0 = Math.random() * Math.PI * 2;
+    let r, speed, s0 = 0, s1 = 0, s2 = 0, size, type;
+    if (k < 0.46) {
+      type = 0;
+      r = 1.72 + Math.pow(Math.random(), 1.6) * 1.7;
+      speed = (0.42 / Math.pow(r, 1.5)) * (0.85 + Math.random() * 0.3);
+      s0 = 0.3 + gauss() * 0.02;
+      s1 = -0.34;
+      s2 = gauss() * 0.035 * r;
+      size = 0.65 + Math.random() * 1.0;
+    } else if (k < 0.62) {
+      type = 0;
+      r = 1.3 + Math.pow(Math.random(), 2.2) * 0.34;
+      speed = -(0.22 + Math.random() * 0.12);
+      s0 = Math.PI / 2;
+      s2 = gauss() * 0.02;
+      size = 0.55 + Math.random() * 0.8;
+    } else {
+      type = 1;
+      r = 1.9 + Math.pow(Math.random(), 0.8) * 2.6;
+      speed = (Math.random() < 0.5 ? -1 : 1) * (0.02 + Math.random() * 0.05);
+      s0 = Math.acos(2 * Math.random() - 1);
+      size = 0.45 + Math.random() * 0.8;
+    }
+    orbit.set([r, a0, speed], i * 3);
+    shape.set([s0, s1, s2], i * 3);
+    look.set([size, seed, type], i * 3);
+  }
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+  pGeo.setAttribute('aOrbit', new THREE.BufferAttribute(orbit, 3));
+  pGeo.setAttribute('aShape', new THREE.BufferAttribute(shape, 3));
+  pGeo.setAttribute('aLook', new THREE.BufferAttribute(look, 3));
+  const pMat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: U.time, uC1: U.c1, uC2: U.c2, uC3: U.c3,
+      uSize: { value: lowPower ? 24 : 27 }, uPR: { value: pixelRatio },
+      uPresence: { value: 0 }, uMouse: { value: new THREE.Vector3(99, 99, 99) },
+      uRepel: { value: 0 }, uPulse: { value: 0 }, uScroll: { value: 0 },
+    },
+    vertexShader: P_VS,
+    fragmentShader: P_FS,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  const particles = new THREE.Points(pGeo, pMat);
+  particles.frustumCulled = false;
+
+  const group = new THREE.Group();
+  group.add(orb, glow, particles);
+  scene.add(group);
+
+  // Bloom
+  let composer = null, bloom = null;
+  if (Post) {
+    composer = new Post.EffectComposer(renderer);
+    composer.setPixelRatio(pixelRatio);
+    composer.addPass(new Post.RenderPass(scene, camera));
+    bloom = new Post.UnrealBloomPass(new THREE.Vector2(W, H), 0.75, 0.45, 0.28);
+    composer.addPass(bloom);
+    composer.addPass(new Post.OutputPass());
+  }
+
+  // ---------- layout ----------
+  const v2 = new THREE.Vector2();
+  // The ring frames the hero block (chip -> name -> role), measured from layout so it
+  // fits any screen size. offsetTop ignores the entrance-animation transforms.
+  const chipEl = document.querySelector('#hero .chip');
+  const roleEl = document.querySelector('#hero .hero-role');
+  const docTop = (el) => { let y = 0; for (let n = el; n; n = n.offsetParent) y += n.offsetTop; return y; };
+  function measureAnchor() {
+    const top = docTop(chipEl);
+    const bottom = docTop(roleEl) + roleEl.offsetHeight;
+    anchorDocY = (top + bottom) / 2;
+    // the rim threads through the chip (top) and the role pill (bottom)
+    const frameR = Math.min(Math.max((bottom - top) / 2 + 6, 80), Math.min(W, H) * 0.42);
+    camZTarget = (ORB_R * (H / 2) / frameR) / tanHalf;
+    if (!started) camera.position.z = camZTarget;
+    dirty = true;
+  }
+  function layout() {
+    if (dead) return;
+    W = innerWidth; H = innerHeight;
+    camera.aspect = W / H;
+    camera.updateProjectionMatrix();
+    pixelRatio = pickPixelRatio();
+    renderer.setPixelRatio(pixelRatio);
+    pMat.uniforms.uPR.value = pixelRatio;
+    renderer.setSize(W, H, false);
+    if (composer) { composer.setPixelRatio(pixelRatio); composer.setSize(W, H); }
+    renderer.getDrawingBufferSize(v2);
+    skyMat.uniforms.uRes.value.copy(v2);
+    const aw = Math.max(1, Math.round(v2.x * auroraScale));
+    const ah = Math.max(1, Math.round(v2.y * auroraScale));
+    auroraRT.setSize(aw, ah);
+    auroraMat.uniforms.uRes.value.set(aw, ah);
+    measureAnchor();
+  }
+
+  // ---------- modes ----------
+  function setMode(m, fromUser) {
+    Object.assign(target, MODES[m]);
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+    if (fromUser) {
+      try { localStorage.setItem('aura-mode', m); } catch (e) { /* storage unavailable */ }
+      if (!reduceMotion) pulse = Math.max(pulse, 0.55);
+    }
+    if (reduceMotion) Object.assign(pres, target);
+    dirty = true;
+  }
+  buttons.forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode, true)));
+  let initial = 'all';
+  try {
+    const saved = localStorage.getItem('aura-mode');
+    if (saved && Object.hasOwn(MODES, saved)) initial = saved;
+  } catch (e) { /* storage unavailable */ }
+  setMode(initial, false);
+
+  // ---------- input ----------
+  const toNdc = (e) => { mouse.x = (e.clientX / W) * 2 - 1; mouse.y = -(e.clientY / H) * 2 + 1; };
+  addEventListener('pointermove', (e) => { toNdc(e); mouse.active = true; }, { passive: true });
+  addEventListener('mouseout', (e) => { if (!e.relatedTarget) mouse.active = false; });
+  addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse') mouse.active = false; });
+  addEventListener('pointercancel', () => { mouse.active = false; });
+  addEventListener('pointerdown', (e) => {
+    toNdc(e);
+    mouse.active = true;
+    if (e.target.closest('a, button, input, textarea, select, label')) return;
+    if (!reduceMotion) pulse = 1;   // click / tap anywhere: aura pulse
+  });
+  addEventListener('resize', layout);
+  if (document.fonts) document.fonts.ready.then(measureAnchor);
+  setTimeout(measureAnchor, 1600);   // after the hero entrance animation settles
+
+  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); fallback(); });
+
+  function fallback() {
+    if (dead) return;
+    dead = true;
+    cancelAnimationFrame(raf);
+    switcher.classList.remove('show');
+    try { renderer.dispose(); } catch (e) { /* ignore */ }
+    window.startFallback2D();
+  }
+
+  function degrade() {
+    perfLevel++;
+    if (perfLevel === 1) {
+      qualityScale = 0.8;
+      auroraScale = 0.35;
+      layout();
+    } else if (perfLevel === 2) {
+      if (composer) { if (composer.dispose) composer.dispose(); composer = null; bloom = null; }
+      pGeo.setDrawRange(0, Math.floor(N * 0.55));
+    }
+    console.info('[aura] reduced quality to level', perfLevel);
+  }
+
+  // ---------- loop ----------
+  const clamp01 = (x) => Math.min(Math.max(x, 0), 1);
+  const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+  const easeOutBack = (x) => 1 + 2.4 * Math.pow(x - 1, 3) + 1.4 * Math.pow(x - 1, 2);
+  const ndc = new THREE.Vector3(), dir = new THREE.Vector3(), hit = new THREE.Vector3(), tmp = new THREE.Vector3();
+
+  function frame(now) {
+    if (dead) return;
+    raf = requestAnimationFrame(frame);
+    const rawDt = (now - last) / 1000;
+    last = now;
+    const dt = Math.min(Math.max(rawDt, 0), 0.05);
+
+    // adaptive quality: step down on slow devices
+    if (perfLevel < 2 && now > perfFrom && rawDt < 0.25) {
+      perfSum += rawDt; perfN++;
+      if (perfN >= 90) {
+        if (perfSum / perfN > 1 / 40) degrade();
+        perfN = 0; perfSum = 0; perfFrom = now + 600;
       }
     }
+
+    const sy = scrollY;
+    if (reduceMotion && !dirty && sy === lastScroll) return;   // render only on change
+    lastScroll = sy;
+    dirty = false;
+
+    if (!reduceMotion) time += dt;
+    U.time.value = time;
+
+    const k = 1 - Math.exp(-dt * 5);
+    const kp = 1 - Math.exp(-dt * 2.2);
+    const active = mouse.active && !reduceMotion;
+    mouse.sx += ((active ? mouse.x : 0) - mouse.sx) * k;
+    mouse.sy += ((active ? mouse.y : 0) - mouse.sy) * k;
+    if (!reduceMotion) {
+      pres.orb += (target.orb - pres.orb) * kp;
+      pres.particles += (target.particles - pres.particles) * kp;
+      pres.aurora += (target.aurora - pres.aurora) * kp;
+      pulse *= Math.exp(-dt * 2.4);
+    }
+
+    // anchor the aura behind the name; it scrolls slower than the page (parallax)
+    const sp = Math.min(sy / H, 1.5);
+    const sp1 = Math.min(sp, 1);
+    camera.position.z += (camZTarget - camera.position.z) * (reduceMotion ? 1 : kp);
+    const halfWorld = camera.position.z * tanHalf;
+    const orbScreenY = anchorDocY - sy * 0.6;
+    group.position.y = (1 - (2 * orbScreenY) / H) * halfWorld;
+    group.scale.setScalar(1 - 0.16 * sp1);
+    group.rotation.y += (mouse.sx * 0.3 + Math.sin(time * 0.1) * 0.08 - group.rotation.y) * k;
+    group.rotation.x += (-mouse.sy * 0.2 - group.rotation.x) * k;
+
+    // orb "ignites" in with a small overshoot
+    const po = pres.orb < 0.001 ? 0 : easeOutBack(clamp01(pres.orb));
+    orb.visible = glow.visible = po > 0.002;
+    orb.scale.setScalar(Math.max(po, 1e-4));
+    glow.scale.setScalar(Math.max(po, 1e-4) * GLOW_R);
+    orb.rotation.y += dt * 0.08;
+    group.updateMatrixWorld(true);
+
+    // pointer -> point on the aura's plane
+    ndc.set(mouse.sx, mouse.sy, 0.5).unproject(camera);
+    dir.copy(ndc).sub(camera.position).normalize();
+    hit.copy(camera.position).addScaledVector(dir, (group.position.z - camera.position.z) / dir.z);
+    repel += ((active ? 0.55 : 0) - repel) * k;
+    pMat.uniforms.uMouse.value.copy(group.worldToLocal(tmp.copy(hit)));
+    const local = orb.worldToLocal(tmp.copy(hit));
+    const dist = local.length();
+    if (dist > 1e-5) orbMat.uniforms.uMouseDir.value.copy(local).divideScalar(dist);
+    mouseAmt += ((active ? 0.2 * (1 - smooth(1.0, 3.2, dist)) : 0) - mouseAmt) * k;
+
+    orbMat.uniforms.uMouseAmt.value = mouseAmt;
+    orbMat.uniforms.uAmp.value = 0.1 * (1 + 1.3 * pulse);
+    orbMat.uniforms.uGlow.value = (1 - 0.22 * sp1) * (1 + 0.9 * pulse);
+    glowMat.uniforms.uGlow.value = (1 - 0.3 * sp1) * (1 + 0.8 * pulse);
+
+    particles.visible = pres.particles > 0.002;
+    // points shrink with camera distance; partly compensate so the field keeps its sparkle
+    pMat.uniforms.uSize.value = (lowPower ? 24 : 27) * Math.sqrt(camera.position.z / 7);
+    pMat.uniforms.uPresence.value = pres.particles;
+    pMat.uniforms.uRepel.value = repel;
+    pMat.uniforms.uPulse.value = pulse;
+    pMat.uniforms.uScroll.value = sp1;
+
+    auroraMat.uniforms.uInt.value = pres.aurora;
+    auroraMat.uniforms.uMouse.value.set(mouse.sx, mouse.sy);
+    auroraMat.uniforms.uScroll.value = sp;
+
+    renderer.setRenderTarget(auroraRT);
+    renderer.render(auroraScene, camera);
+    renderer.setRenderTarget(null);
+
+    if (composer) {
+      bloom.strength = (0.4 + 0.35 * Math.max(pres.orb, pres.particles)) * (1 - 0.3 * sp1) + 0.6 * pulse;
+      composer.render(dt);
+    } else {
+      renderer.render(scene, camera);
+    }
+
+    if (shaderError) { fallback(); return; }
+    if (!started) {
+      started = true;
+      canvas.classList.add('ready');
+      switcher.classList.add('show');
+    }
   }
 
-  // Draw dots
-  for (const p of particles) {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0,212,255,0.85)';
-    ctx.fill();
-  }
-
-  requestAnimationFrame(draw);
+  layout();
+  raf = requestAnimationFrame(frame);
 }
-
-draw();
 </script>
 </body>
 </html>
